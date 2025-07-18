@@ -1,161 +1,88 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.utils import secure_filename
-from datetime import datetime
-import os
-import bcrypt
+from flask_login import LoginManager, login_user, logout_user, login_required, UserMixin
+from flask_bcrypt import Bcrypt
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms.validators import DataRequired, Email, EqualTo
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
-app.secret_key = 'your_secret_key'
-db = SQLAlchemy(app)
+app.config['SECRET_KEY'] = 'your_secret_key'  # 원하는 키로 바꿔도 됨
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 
-login_manager = LoginManager()
-login_manager.init_app(app)
+db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-UPLOAD_FOLDER = 'static/profile_images'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# 사용자 모델
+# -------------------- 모델 --------------------
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password = db.Column(db.String(120), nullable=False)
-    email = db.Column(db.String(120), unique=True)
-    profile = db.Column(db.Text)
-    profile_image = db.Column(db.String(120))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    username = db.Column(db.String(150), nullable=False, unique=True)
+    email = db.Column(db.String(150), nullable=False, unique=True)
+    password = db.Column(db.String(200), nullable=False)
 
-# 글 모델
-class Post(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100))
-    content = db.Column(db.Text)
-    category = db.Column(db.String(50))
-    tags = db.Column(db.String(200))
-    author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    author = db.relationship('User', backref=db.backref('posts', lazy=True))
+    def set_password(self, raw_password):
+        self.password = bcrypt.generate_password_hash(raw_password).decode('utf-8')
 
-# 댓글 모델
-class Comment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text)
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
-    post = db.relationship('Post', backref=db.backref('comments', lazy=True))
-    author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    author = db.relationship('User', backref=db.backref('comments', lazy=True))
+    def check_password(self, raw_password):
+        return bcrypt.check_password_hash(self.password, raw_password)
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# -------------------- 폼 --------------------
+class RegisterForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Sign Up')
+
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Login')
+
+# -------------------- 라우트 --------------------
 @app.route('/')
 @login_required
-def index():
-    posts = Post.query.order_by(Post.id.desc()).all()
-    return render_template('index.html', posts=posts)
+def home():
+    return f"환영합니다, {current_user.username}님!"
 
-@app.route('/signup', methods=['GET', 'POST'])
-def signup():
-    return '❌ 회원가입은 관리자에게 문의하세요.'
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegisterForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('회원가입이 완료되었습니다! 로그인해주세요.', 'success')
+        return redirect(url_for('login'))
+    return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and user.check_password(form.password.data):
             login_user(user)
-            return redirect('/')
+            flash('로그인 성공!', 'success')
+            return redirect(url_for('home'))
         else:
-            return '❌ 로그인 실패'
-    return render_template('login.html')
+            flash('이메일 또는 비밀번호가 올바르지 않습니다.', 'danger')
+    return render_template('login.html', form=form)
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
-    return redirect('/login')
+    flash('로그아웃되었습니다.', 'info')
+    return redirect(url_for('login'))
 
-@app.route('/create', methods=['GET', 'POST'])
-@login_required
-def create():
-    if current_user.username != 'admin':
-        return '❌ 관리자만 글 작성이 가능합니다.', 403
-    if request.method == 'POST':
-        title = request.form['title']
-        content = request.form['content']
-        category = request.form['category']
-        tags = request.form['tags']
-        post = Post(title=title, content=content, category=category, tags=tags, author=current_user)
-        db.session.add(post)
-        db.session.commit()
-        return redirect('/')
-    return render_template('create.html')
-
-@app.route('/post/<int:id>')
-@login_required
-def post(id):
-    post = Post.query.get_or_404(id)
-    return render_template('post.html', post=post)
-
-@app.route('/comment/<int:post_id>', methods=['POST'])
-@login_required
-def comment(post_id):
-    content = request.form['content']
-    new_comment = Comment(content=content, post_id=post_id, author=current_user)
-    db.session.add(new_comment)
-    db.session.commit()
-    return redirect(f'/post/{post_id}')
-
-@app.route('/user/<int:user_id>')
-@login_required
-def profile(user_id):
-    user = User.query.get_or_404(user_id)
-    posts = Post.query.filter_by(author_id=user.id).all()
-    comments = Comment.query.filter_by(author_id=user.id).all()
-    return render_template('profile.html', user=user, posts=posts, comments=comments)
-
-@app.route('/upload_profile_image', methods=['POST'])
-@login_required
-def upload_profile_image():
-    file = request.files['image']
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        path = os.path.join(UPLOAD_FOLDER, filename)
-        file.save(path)
-        current_user.profile_image = filename
-        db.session.commit()
-    else:
-        return '❌ 지원하지 않는 이미지 형식입니다.', 400
-    return redirect(f'/user/{current_user.id}')
-
-@app.route('/edit_profile', methods=['GET', 'POST'])
-@login_required
-def edit_profile():
-    if request.method == 'POST':
-        current_user.profile = request.form['profile']
-        file = request.files.get('image')
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(path)
-            current_user.profile_image = filename
-        elif file and file.filename:
-            return '❌ 지원하지 않는 이미지 형식입니다.', 400
-        db.session.commit()
-        return redirect(f'/user/{current_user.id}')
-    return render_template('edit_profile.html', user=current_user)
-
-with app.app_context():
-    db.create_all()
-
+# -------------------- 실행 --------------------
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(debug=True)
