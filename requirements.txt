@@ -1,6 +1,8 @@
-Flask
-Flask-SQLAlchemy
-Flask-Login
-Flask-WTF
-Flask-Bcrypt
+flask
+flask_sqlalchemy
+flask_login
+flask_wtf
+flask_bcrypt
+flask_migrate
 gunicorn
+
