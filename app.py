@@ -231,4 +231,4 @@ def view_profile(id):
     user = User.query.get_or_404(id)
     posts = Post.query.filter_by(author_id=user.id).order_by(Post.id.desc()).all()
     comments = Comment.query.filter_by(author_id=user.id).order_by(Comment.id.desc()).all()
-    return render_template('profile.html', user=user, posts=posts
+    return render_template('profile.html', user=user, posts=posts, comments=comments)
