@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>글 수정</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <div class="container py-5 px-4">
+    <h1>글 수정하기</h1>
+    <form method="POST">
+      {{ form.hidden_tag() }}
+      <div class="mb-3">{{ form.title.label }}{{ form.title(class="form-control") }}</div>
+      <div class="mb-3">{{ form.content.label }}{{ form.content(class="form-control", rows="5") }}</div>
+      <div class="mb-3">{{ form.category.label }}{{ form.category(class="form-control") }}</div>
+      <div class="mb-3">{{ form.tags.label }}{{ form.tags(class="form-control") }}</div>
+      {{ form.submit(class="btn btn-primary") }}
+    </form>
+    <br>
+    <a href="{{ url_for('view_post', post_id=post.id) }}">← 돌아가기</a>
+  </div>
+</body>
+</html>
