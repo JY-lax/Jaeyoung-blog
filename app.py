@@ -374,3 +374,12 @@ def admin_delete_post(post_id):
     db.session.commit()
     flash('글이 삭제되었습니다.')
     return redirect(url_for('admin'))
+@app.context_processor
+def inject_user():
+    user = None
+    is_admin = False
+    if session.get('user'):
+        user = User.query.filter_by(username=session['user']).first()
+        if user:
+            is_admin = user.is_admin
+    return dict(current_user=user, is_admin=is_admin)
