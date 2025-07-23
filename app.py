@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from sqlalchemy import text
+from flask import jsonify
 
 # ✅ 환경 변수 로딩
 load_dotenv()
@@ -64,17 +65,34 @@ def main():
     """)).fetchall()
     return render_template('main.html', posts=posts)
 
-# ✅ 카테고리별 글 목록
-@app.route('/category/<string:category>')
-def category_posts(category):
+# ✅ 카테고리별 글 목록 API (무한스크롤용)
+@app.route('/load_category_posts/<string:category>')
+def load_category_posts(category):
+    page = int(request.args.get('page', 1))
+    per_page = 10
+    offset = (page - 1) * per_page
+
     posts = db.session.execute(text("""
         SELECT p.id, p.title, u.username, p.tags, p.created_at
         FROM post p
         JOIN "user" u ON p.author_id = u.id
         WHERE LOWER(p.tags) LIKE :category
         ORDER BY p.id DESC
-    """), {'category': f'%{category.lower()}%'}).fetchall()
-    return render_template('category.html', category=category, posts=posts)
+        LIMIT :limit OFFSET :offset
+    """), {
+        'category': f'%{category.lower()}%',
+        'limit': per_page,
+        'offset': offset
+    }).fetchall()
+
+    return jsonify([{
+        'id': post[0],
+        'title': post[1],
+        'username': post[2],
+        'tags': post[3],
+        'created_at': post[4].strftime('%Y-%m-%d %H:%M')
+    } for post in posts])
+
 
 # ✅ 글 상세 보기
 @app.route('/post/<int:post_id>')
@@ -202,6 +220,30 @@ def profile():
         return redirect(url_for('login'))
     user = User.query.filter_by(username=session['user']).first()
     return render_template('profile.html', username=user.username)
+from flask import jsonify  # 상단에 추가
+
+# ✅ 무한스크롤용 글 로딩 API
+@app.route('/load_posts')
+def load_posts():
+    page = int(request.args.get('page', 1))
+    per_page = 10
+    offset = (page - 1) * per_page
+
+    posts = db.session.execute(text("""
+        SELECT p.id, p.title, u.username, p.tags, p.created_at
+        FROM post p
+        JOIN "user" u ON p.author_id = u.id
+        ORDER BY p.id DESC
+        LIMIT :limit OFFSET :offset
+    """), {'limit': per_page, 'offset': offset}).fetchall()
+
+    return jsonify([{
+        'id': post[0],
+        'title': post[1],
+        'username': post[2],
+        'tags': post[3],
+        'created_at': post[4].strftime('%Y-%m-%d %H:%M')
+    } for post in posts])
 
 # ✅ 관리자 페이지
 @app.route('/admin')
