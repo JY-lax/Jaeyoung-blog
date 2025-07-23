@@ -46,12 +46,8 @@
   <div class="profile-box">
     <h2>👤 {{ username }}님의 프로필</h2>
 
-    {% set user = User.query.filter_by(username=username).first() %}
-    {% if user.profile_image %}
-      <img src="{{ url_for('static', filename='profile/' ~ user.profile_image) }}" alt="프로필 이미지">
-    {% else %}
-      <img src="{{ url_for('static', filename='profile/default.jpg') }}" alt="기본 이미지">
-    {% endif %}
+    {% set image_path = user.profile_image if user.profile_image else 'default.jpg' %}
+    <img src="{{ url_for('static', filename='profile/' ~ image_path) }}" alt="프로필 이미지">
 
     <p>{{ user.bio or "자기소개가 없습니다." }}</p>
 

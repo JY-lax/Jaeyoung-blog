@@ -45,11 +45,16 @@ class Post(db.Model):
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     comments = db.relationship('Comment', backref='post', lazy=True)
 
+
+from datetime import datetime
+
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)  # ✅ 댓글 시간
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+
 
 # ✅ 홈 → 메인 글 목록
 @app.route('/')
@@ -130,7 +135,6 @@ def load_category_posts(category):
         'created_at': post[4].strftime('%Y-%m-%d %H:%M')
     } for post in posts])
 
-# ✅ 글 상세 보기
 @app.route('/post/<int:post_id>')
 def post_detail(post_id):
     post = Post.query.get_or_404(post_id)
@@ -158,7 +162,6 @@ def post_detail(post_id):
                            comments=comments_raw,
                            likes=likes,
                            post_id=post_id)
-
 # ✅ 좋아요 (임시)
 @app.route('/like/<int:post_id>')
 def like(post_id):
@@ -168,7 +171,6 @@ def like(post_id):
     flash('좋아요를 눌렀습니다! (기능은 아직 미구현)')
     return redirect(url_for('post_detail', post_id=post_id))
 
-# ✅ 댓글 작성
 @app.route('/comment/<int:post_id>', methods=['POST'])
 def comment(post_id):
     if not session.get('user'):
@@ -177,6 +179,11 @@ def comment(post_id):
 
     content = request.form.get('content')
     user = User.query.filter_by(username=session['user']).first()
+
+    if not user:
+        flash('사용자를 찾을 수 없습니다.')
+        return redirect(url_for('login'))
+
     new_comment = Comment(content=content, post_id=post_id, author_id=user.id)
     db.session.add(new_comment)
     db.session.commit()
@@ -253,14 +260,18 @@ def logout():
     flash('로그아웃 되었습니다.')
     return redirect(url_for('main'))
 
-# ✅ 프로필
 @app.route('/profile')
 def profile():
     if not session.get('user'):
         flash('로그인이 필요합니다.')
         return redirect(url_for('login'))
+
     user = User.query.filter_by(username=session['user']).first()
-    return render_template('profile.html', username=user.username)
+    if not user:
+        flash('사용자를 찾을 수 없습니다.')
+        return redirect(url_for('login'))
+
+    return render_template('profile.html', username=user.username, user=user)
 
 # ✅ 관리자 페이지
 @app.route('/admin')
