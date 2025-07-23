@@ -1,13 +1,12 @@
 import os
 from datetime import datetime
-from flask import Flask, render_template, redirect, url_for, request, flash, session
+from flask import Flask, render_template, redirect, url_for, request, flash, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_migrate import Migrate
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from sqlalchemy import text
-from flask import jsonify
 
 # ✅ 환경 변수 로딩
 load_dotenv()
@@ -33,6 +32,8 @@ class User(db.Model):
     password = db.Column(db.String(150), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    bio = db.Column(db.Text)  # ✅ 자기소개
+    profile_image = db.Column(db.String(300))  # ✅ 프로필 이미지 경로
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -65,7 +66,43 @@ def main():
     """)).fetchall()
     return render_template('main.html', posts=posts)
 
-# ✅ 카테고리별 글 목록 API (무한스크롤용)
+# ✅ 카테고리별 글 목록
+@app.route('/category/<string:category>')
+def category_posts(category):
+    posts = db.session.execute(text("""
+        SELECT p.id, p.title, u.username, p.tags, p.created_at
+        FROM post p
+        JOIN "user" u ON p.author_id = u.id
+        WHERE LOWER(p.tags) LIKE :category
+        ORDER BY p.id DESC
+        LIMIT 10
+    """), {'category': f'%{category.lower()}%'}).fetchall()
+    return render_template('category.html', posts=posts, category=category)
+
+# ✅ 무한스크롤용 글 로딩 API
+@app.route('/load_posts')
+def load_posts():
+    page = int(request.args.get('page', 1))
+    per_page = 10
+    offset = (page - 1) * per_page
+
+    posts = db.session.execute(text("""
+        SELECT p.id, p.title, u.username, p.tags, p.created_at
+        FROM post p
+        JOIN "user" u ON p.author_id = u.id
+        ORDER BY p.id DESC
+        LIMIT :limit OFFSET :offset
+    """), {'limit': per_page, 'offset': offset}).fetchall()
+
+    return jsonify([{
+        'id': post[0],
+        'title': post[1],
+        'username': post[2],
+        'tags': post[3],
+        'created_at': post[4].strftime('%Y-%m-%d %H:%M')
+    } for post in posts])
+
+# ✅ 카테고리별 무한스크롤 API
 @app.route('/load_category_posts/<string:category>')
 def load_category_posts(category):
     page = int(request.args.get('page', 1))
@@ -92,24 +129,13 @@ def load_category_posts(category):
         'tags': post[3],
         'created_at': post[4].strftime('%Y-%m-%d %H:%M')
     } for post in posts])
-@app.route('/category/<string:category>')
-def category_posts(category):
-    posts = db.session.execute(text("""
-        SELECT p.id, p.title, u.username, p.tags, p.created_at
-        FROM post p
-        JOIN "user" u ON p.author_id = u.id
-        WHERE LOWER(p.tags) LIKE :category
-        ORDER BY p.id DESC
-        LIMIT 10
-    """), {'category': f'%{category.lower()}%'}).fetchall()
-
-    return render_template('category.html', posts=posts, category=category)
 
 # ✅ 글 상세 보기
 @app.route('/post/<int:post_id>')
 def post_detail(post_id):
     post = Post.query.get_or_404(post_id)
     author = User.query.get(post.author_id)
+
     comments_raw = db.session.execute(text("""
         SELECT u.username, c.content, c.created_at
         FROM comment c
@@ -127,7 +153,11 @@ def post_detail(post_id):
         'content': post.content
     }
 
-    return render_template('post_detail.html', post=post_data, comments=comments_raw, likes=likes, post_id=post_id)
+    return render_template('post_detail.html',
+                           post=post_data,
+                           comments=comments_raw,
+                           likes=likes,
+                           post_id=post_id)
 
 # ✅ 좋아요 (임시)
 @app.route('/like/<int:post_id>')
@@ -231,30 +261,6 @@ def profile():
         return redirect(url_for('login'))
     user = User.query.filter_by(username=session['user']).first()
     return render_template('profile.html', username=user.username)
-from flask import jsonify  # 상단에 추가
-
-# ✅ 무한스크롤용 글 로딩 API
-@app.route('/load_posts')
-def load_posts():
-    page = int(request.args.get('page', 1))
-    per_page = 10
-    offset = (page - 1) * per_page
-
-    posts = db.session.execute(text("""
-        SELECT p.id, p.title, u.username, p.tags, p.created_at
-        FROM post p
-        JOIN "user" u ON p.author_id = u.id
-        ORDER BY p.id DESC
-        LIMIT :limit OFFSET :offset
-    """), {'limit': per_page, 'offset': offset}).fetchall()
-
-    return jsonify([{
-        'id': post[0],
-        'title': post[1],
-        'username': post[2],
-        'tags': post[3],
-        'created_at': post[4].strftime('%Y-%m-%d %H:%M')
-    } for post in posts])
 
 # ✅ 관리자 페이지
 @app.route('/admin')
@@ -285,4 +291,46 @@ def delete_post(post_id):
         return redirect(url_for('main'))
 
     post = Post.query.get_or_404(post_id)
-    db.session.delete
+    db.session.delete(post)
+    db.session.commit()
+    flash('글이 삭제되었습니다.')
+    return redirect(url_for('main'))
+@app.route('/profile/edit', methods=['GET', 'POST'])
+def edit_profile():
+    if not session.get('user'):
+        flash('로그인이 필요합니다.')
+        return redirect(url_for('login'))
+
+    user = User.query.filter_by(username=session['user']).first()
+
+    if request.method == 'POST':
+        new_username = request.form.get('username').strip()
+        new_password = request.form.get('password').strip()
+        bio = request.form.get('bio').strip()
+        image_file = request.files.get('profile_image')
+
+        if new_username:
+            user.username = new_username
+            session['user'] = new_username
+
+        if new_password:
+            user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+
+        if bio:
+            user.bio = bio
+
+        if image_file and image_file.filename:
+            filename = secure_filename(image_file.filename)
+            image_path = os.path.join('static/profile', filename)
+            image_file.save(image_path)
+            user.profile_image = filename
+
+        db.session.commit()
+        flash('프로필이 수정되었습니다.')
+        return redirect(url_for('profile'))
+
+    return render_template('edit_profile.html', user=user)
+@app.route('/profile/<string:username>')
+def view_profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    return render_template('view_profile.html', user=user)

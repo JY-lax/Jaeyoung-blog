@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>프로필 수정</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .form-container {
+      max-width: 400px;
+      margin: 5rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .form-container input,
+    .form-container textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .form-container button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>🧑‍💼 프로필 수정</h2>
+    <form method="POST" enctype="multipart/form-data">
+      <input type="text" name="username" value="{{ user.username }}" placeholder="새 아이디">
+      <input type="password" name="password" placeholder="새 비밀번호">
+      <textarea name="bio" rows="4" placeholder="자기소개">{{ user.bio }}</textarea>
+      <input type="file" name="profile_image">
+      <button type="submit">수정하기</button>
+    </form>
+    <p style="text-align:center; margin-top:1rem;">
+      <a href="{{ url_for('profile') }}">← 프로필로 돌아가기</a>
+    </p>
+  </div>
+</body>
+</html>
