@@ -54,6 +54,10 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)  # ✅ 댓글 시간
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+class Like(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
 
 
 # ✅ 홈 → 메인 글 목록
@@ -63,12 +67,20 @@ def home():
 
 @app.route('/main')
 def main():
-    posts = db.session.execute(text("""
-        SELECT p.id, p.title, u.username, p.tags, p.created_at
+    posts_raw = db.session.execute(text("""
+        SELECT p.id, p.title, u.username, p.category, p.created_at
         FROM post p
         JOIN "user" u ON p.author_id = u.id
         ORDER BY p.id DESC
     """)).fetchall()
+
+    posts = []
+    for post in posts_raw:
+        post_id = post[0]
+        like_count = Like.query.filter_by(post_id=post_id).count()
+        comment_count = Comment.query.filter_by(post_id=post_id).count()
+        posts.append((post_id, post[1], post[2], post[3], post[4].strftime('%Y-%m-%d %H:%M'), like_count, comment_count))
+
     return render_template('main.html', posts=posts)
 
 # ✅ 카테고리별 글 목록
@@ -148,7 +160,7 @@ def post_detail(post_id):
         ORDER BY c.id DESC
     """), {'post_id': post_id}).fetchall()
 
-    likes = 12  # 임시 좋아요 수
+    likes = Like.query.filter_by(post_id=post_id).count()  # ✅ 실시간 좋아요 수
 
     post_data = {
         'title': post.title,
@@ -162,32 +174,26 @@ def post_detail(post_id):
                            comments=comments_raw,
                            likes=likes,
                            post_id=post_id)
-# ✅ 좋아요 (임시)
 @app.route('/like/<int:post_id>')
 def like(post_id):
     if not session.get('user'):
         flash('로그인이 필요합니다.')
         return redirect(url_for('login'))
-    flash('좋아요를 눌렀습니다! (기능은 아직 미구현)')
-    return redirect(url_for('post_detail', post_id=post_id))
 
-@app.route('/comment/<int:post_id>', methods=['POST'])
-def comment(post_id):
-    if not session.get('user'):
-        flash('로그인이 필요합니다.')
-        return redirect(url_for('login'))
-
-    content = request.form.get('content')
     user = User.query.filter_by(username=session['user']).first()
-
     if not user:
         flash('사용자를 찾을 수 없습니다.')
         return redirect(url_for('login'))
 
-    new_comment = Comment(content=content, post_id=post_id, author_id=user.id)
-    db.session.add(new_comment)
-    db.session.commit()
-    flash('댓글이 작성되었습니다.')
+    existing_like = Like.query.filter_by(user_id=user.id, post_id=post_id).first()
+    if existing_like:
+        flash('이미 좋아요를 누르셨습니다.')
+    else:
+        new_like = Like(user_id=user.id, post_id=post_id)
+        db.session.add(new_like)
+        db.session.commit()
+        flash('좋아요가 반영되었습니다.')
+
     return redirect(url_for('post_detail', post_id=post_id))
 
 # ✅ 카테고리 글 작성

@@ -5,110 +5,13 @@
   <title>재영의 기술 블로그</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding: 0;
-    }
-    .banner-wrap {
-      position: relative;
-      text-align: center;
-    }
-    .banner-wrap img {
-      width: 100%;
-      height: auto;
-    }
-    .navbar {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-    }
-    .navbar ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      gap: 10px;
-    }
-    .nav-btn {
-      background-color: #007bff;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 5px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .nav-btn:hover {
-      background-color: #0056b3;
-    }
-    .overlay-button {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .overlay-button ul {
-      list-style: none;
-      display: flex;
-      gap: 10px;
-      padding: 0;
-      margin: 0;
-    }
-    .btn {
-      background-color: #28a745;
-      color: white;
-      padding: 10px 16px;
-      border-radius: 5px;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .btn:hover {
-      background-color: #218838;
-    }
-    .post-list {
-      max-width: 900px;
-      margin: 3rem auto;
-      padding: 0 1rem;
-    }
-    .post-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
-    }
-    .post-card {
-      background-color: white;
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .post-card h3 {
-      margin-top: 0;
-    }
-    .post-card a {
-      text-decoration: none;
-      color: #333;
-    }
-    .post-card a:hover {
-      color: #007bff;
-    }
-    .meta {
-      font-size: 0.9em;
-      color: gray;
-      margin-bottom: 0.5rem;
-    }
-    .stats {
-      font-size: 0.9em;
-      color: #555;
-    }
-  </style>
 </head>
 <body>
   <header>
     <div class="banner-wrap">
       <img src="{{ url_for('static', filename='banner.jpg') }}" alt="블로그 상단 이미지">
 
+      <!-- 🔷 상단 네비게이션 -->
       <nav class="navbar">
         <ul>
           {% if session.get('user') %}
@@ -125,6 +28,7 @@
         </ul>
       </nav>
 
+      <!-- 🔷 기술 카테고리 버튼 -->
       <div class="overlay-button">
         <ul>
           <li><a href="{{ url_for('category_posts', category='java') }}" class="btn"><i class="fab fa-java"></i> 자바</a></li>
@@ -145,7 +49,7 @@
             <h3><a href="{{ url_for('post_detail', post_id=post[0]) }}">{{ post[1] }}</a></h3>
             <p class="meta">📁 {{ post[3] }} | ✍️ {{ post[2] }} | 🕒 {{ post[4] }}</p>
             <div class="stats">
-              ❤️ 12 | 💬 3
+              ❤️ {{ post[5] }} | 💬 {{ post[6] if post[6] > 0 else '댓글 없음' }}
             </div>
           </div>
         {% endfor %}
