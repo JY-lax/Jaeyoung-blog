@@ -2,11 +2,61 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>프로필</title>
+  <title>{{ username }}님의 프로필</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .profile-box {
+      max-width: 500px;
+      margin: 5rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .profile-box img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-bottom: 1rem;
+    }
+    .profile-box h2 {
+      margin-bottom: 0.5rem;
+    }
+    .profile-box p {
+      font-size: 1rem;
+      color: #333;
+    }
+    .profile-box a {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    .profile-box a:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
-  <h2>{{ username }}님의 프로필 페이지</h2>
-  <p>환영합니다! 기술 블로그에 오신 것을 환영해요 😊</p>
-  <a href="{{ url_for('logout') }}">로그아웃</a>
+  <div class="profile-box">
+    <h2>👤 {{ username }}님의 프로필</h2>
+
+    {% set user = User.query.filter_by(username=username).first() %}
+    {% if user.profile_image %}
+      <img src="{{ url_for('static', filename='profile/' ~ user.profile_image) }}" alt="프로필 이미지">
+    {% else %}
+      <img src="{{ url_for('static', filename='profile/default.jpg') }}" alt="기본 이미지">
+    {% endif %}
+
+    <p>{{ user.bio or "자기소개가 없습니다." }}</p>
+
+    <a href="{{ url_for('edit_profile') }}">프로필 수정</a>
+    <a href="{{ url_for('logout') }}">로그아웃</a>
+  </div>
 </body>
 </html>

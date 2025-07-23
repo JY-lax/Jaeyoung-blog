@@ -9,12 +9,8 @@
       margin: 40px;
       background-color: #f9f9f9;
     }
-    h2 {
-      color: #333;
-    }
-    section {
-      margin-bottom: 40px;
-    }
+    h2 { color: #333; }
+    section { margin-bottom: 40px; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -25,9 +21,7 @@
       border-bottom: 1px solid #ddd;
       text-align: left;
     }
-    th {
-      background-color: #f0f0f0;
-    }
+    th { background-color: #f0f0f0; }
     .admin-label {
       color: #007bff;
       font-weight: bold;
@@ -43,10 +37,21 @@
     .delete-btn:hover {
       background-color: #c82333;
     }
+    .promote-btn {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .promote-btn:hover {
+      background-color: #218838;
+    }
   </style>
 </head>
 <body>
-  <h2>관리자 페이지</h2>
+  <h2>👑 관리자 페이지</h2>
 
   <section>
     <h3>전체 사용자</h3>
@@ -54,6 +59,8 @@
       <tr>
         <th>아이디</th>
         <th>권한</th>
+        <th>승격</th>
+        <th>프로필</th>
       </tr>
       {% for user in users %}
       <tr>
@@ -64,6 +71,16 @@
           {% else %}
             일반 사용자
           {% endif %}
+        </td>
+        <td>
+          {% if not user.is_admin %}
+          <form method="POST" action="{{ url_for('promote_user', user_id=user.id) }}">
+            <button type="submit" class="promote-btn">승격</button>
+          </form>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{{ url_for('view_profile', username=user.username) }}">보기</a>
         </td>
       </tr>
       {% endfor %}
@@ -83,9 +100,9 @@
       <tr>
         <td>{{ post.title }}</td>
         <td>{{ post.author_id }}</td>
-        <td>{{ post.id }}</td>
+        <td>{{ post.created_at.strftime('%Y-%m-%d') }}</td>
         <td>
-          <form action="{{ url_for('delete_post', post_id=post.id) }}" method="POST" style="display:inline;">
+          <form action="{{ url_for('admin_delete_post', post_id=post.id) }}" method="POST" style="display:inline;">
             <button type="submit" class="delete-btn">삭제</button>
           </form>
         </td>
@@ -94,6 +111,6 @@
     </table>
   </section>
 
-  <a href="{{ url_for('posts') }}">← 글 목록으로 돌아가기</a>
+  <a href="{{ url_for('main') }}">← 글 목록으로 돌아가기</a>
 </body>
 </html>

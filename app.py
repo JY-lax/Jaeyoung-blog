@@ -306,19 +306,27 @@ def edit_profile():
     if request.method == 'POST':
         new_username = request.form.get('username').strip()
         new_password = request.form.get('password').strip()
+        confirm_password = request.form.get('confirm_password').strip()
         bio = request.form.get('bio').strip()
         image_file = request.files.get('profile_image')
 
+        # 아이디 변경
         if new_username:
             user.username = new_username
-            session['user'] = new_username
+            session['user'] = new_username  # 세션도 갱신
 
+        # 비밀번호 변경 (확인 포함)
         if new_password:
+            if new_password != confirm_password:
+                flash('비밀번호가 일치하지 않습니다.')
+                return redirect(url_for('edit_profile'))
             user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
 
+        # 자기소개
         if bio:
             user.bio = bio
 
+        # 프로필 이미지
         if image_file and image_file.filename:
             filename = secure_filename(image_file.filename)
             image_path = os.path.join('static/profile', filename)

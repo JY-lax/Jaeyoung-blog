@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
     .form-container {
-      max-width: 400px;
+      max-width: 500px;
       margin: 5rem auto;
       background: white;
       padding: 2rem;
@@ -34,21 +34,45 @@
       border-radius: 5px;
       font-weight: bold;
     }
+    .preview-img {
+      display: block;
+      margin: 0 auto 1rem;
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
   </style>
 </head>
 <body>
   <div class="form-container">
     <h2>🧑‍💼 프로필 수정</h2>
+
+    {% set image_path = user.profile_image if user.profile_image else 'default.jpg' %}
+    <img src="{{ url_for('static', filename='profile/' ~ image_path) }}" alt="프로필 이미지" class="preview-img" id="preview">
+
     <form method="POST" enctype="multipart/form-data">
-      <input type="text" name="username" value="{{ user.username }}" placeholder="새 아이디">
+      <input type="text" name="username" value="{{ user.username }}" placeholder="아이디">
       <input type="password" name="password" placeholder="새 비밀번호">
+      <input type="password" name="confirm_password" placeholder="비밀번호 확인">
       <textarea name="bio" rows="4" placeholder="자기소개">{{ user.bio }}</textarea>
-      <input type="file" name="profile_image">
+      <input type="file" name="profile_image" accept="image/*" onchange="previewImage(event)">
       <button type="submit">수정하기</button>
     </form>
+
     <p style="text-align:center; margin-top:1rem;">
       <a href="{{ url_for('profile') }}">← 프로필로 돌아가기</a>
     </p>
   </div>
+
+  <script>
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function() {
+        document.getElementById('preview').src = reader.result;
+      }
+      reader.readAsDataURL(event.target.files[0]);
+    }
+  </script>
 </body>
 </html>
