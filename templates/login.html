@@ -3,16 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <title>로그인</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .form-container {
+      max-width: 400px;
+      margin: 5rem auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .form-container h2 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .form-container input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .form-container button {
+      width: 100%;
+      padding: 10px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+  </style>
 </head>
 <body>
-  <h2>로그인</h2>
-  {% if error %}
-    <p style="color:red;">{{ error }}</p>
-  {% endif %}
-  <form method="POST">
-    <label>아이디: <input type="text" name="username" required></label><br><br>
-    <label>비밀번호: <input type="password" name="password" required></label><br><br>
-    <button type="submit">로그인</button>
-  </form>
+  <div class="form-container">
+    <h2>🔐 로그인</h2>
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+    <form method="POST">
+      <input type="text" name="username" placeholder="아이디" required>
+      <input type="password" name="password" placeholder="비밀번호" required>
+      <button type="submit">로그인</button>
+    </form>
+    <p style="text-align:center; margin-top:1rem;">
+      아직 계정이 없으신가요? <a href="{{ url_for('register') }}">회원가입</a>
+    </p>
+  </div>
 </body>
 </html>

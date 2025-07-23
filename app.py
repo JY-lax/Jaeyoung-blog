@@ -92,7 +92,18 @@ def load_category_posts(category):
         'tags': post[3],
         'created_at': post[4].strftime('%Y-%m-%d %H:%M')
     } for post in posts])
+@app.route('/category/<string:category>')
+def category_posts(category):
+    posts = db.session.execute(text("""
+        SELECT p.id, p.title, u.username, p.tags, p.created_at
+        FROM post p
+        JOIN "user" u ON p.author_id = u.id
+        WHERE LOWER(p.tags) LIKE :category
+        ORDER BY p.id DESC
+        LIMIT 10
+    """), {'category': f'%{category.lower()}%'}).fetchall()
 
+    return render_template('category.html', posts=posts, category=category)
 
 # ✅ 글 상세 보기
 @app.route('/post/<int:post_id>')
