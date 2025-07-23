@@ -114,8 +114,7 @@
           {% if session.get('user') %}
             <li><a href="{{ url_for('write_category', category='java') }}" class="nav-btn">글쓰기</a></li>
             <li><a href="{{ url_for('profile') }}" class="nav-btn">프로필</a></li>
-            {% set current_user = User.query.filter_by(username=session['user']).first() %}
-            {% if current_user and current_user.is_admin %}
+            {% if is_admin %}
               <li><a href="{{ url_for('admin') }}" class="nav-btn">👑 관리자</a></li>
             {% endif %}
             <li><a href="{{ url_for('logout') }}" class="nav-btn">로그아웃</a></li>
