@@ -35,12 +35,15 @@ class User(db.Model):
     bio = db.Column(db.Text)  # ✅ 자기소개
     profile_image = db.Column(db.String(300))  # ✅ 프로필 이미지 경로
 
+from datetime import datetime
+
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     content = db.Column(db.Text, nullable=False)
     image = db.Column(db.String(300))
     tags = db.Column(db.String(300))
+    category = db.Column(db.String(50), nullable=True)  # ✅ 추가
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     comments = db.relationship('Comment', backref='post', lazy=True)
