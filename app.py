@@ -334,3 +334,35 @@ def edit_profile():
 def view_profile(username):
     user = User.query.filter_by(username=username).first_or_404()
     return render_template('view_profile.html', user=user)
+@app.route('/admin/promote/<int:user_id>', methods=['POST'])
+def promote_user(user_id):
+    if not session.get('user'):
+        flash('로그인이 필요합니다.')
+        return redirect(url_for('login'))
+
+    current_user = User.query.filter_by(username=session['user']).first()
+    if not current_user.is_admin:
+        flash('관리자만 승격할 수 있습니다.')
+        return redirect(url_for('main'))
+
+    user = User.query.get_or_404(user_id)
+    user.is_admin = True
+    db.session.commit()
+    flash(f'{user.username}님을 관리자로 승격했습니다.')
+    return redirect(url_for('admin'))
+@app.route('/admin/delete_post/<int:post_id>', methods=['POST'])
+def admin_delete_post(post_id):
+    if not session.get('user'):
+        flash('로그인이 필요합니다.')
+        return redirect(url_for('login'))
+
+    current_user = User.query.filter_by(username=session['user']).first()
+    if not current_user.is_admin:
+        flash('관리자만 삭제할 수 있습니다.')
+        return redirect(url_for('main'))
+
+    post = Post.query.get_or_404(post_id)
+    db.session.delete(post)
+    db.session.commit()
+    flash('글이 삭제되었습니다.')
+    return redirect(url_for('admin'))
