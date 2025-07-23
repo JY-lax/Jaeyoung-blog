@@ -2,12 +2,8 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>{{ post.title }}</title>
-  <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    .comment { margin-bottom: 10px; }
-    .meta { font-size: 0.9em; color: gray; }
-  </style>
+  <title>📚 게시글 목록</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <h2>{{ post.title }}</h2>
