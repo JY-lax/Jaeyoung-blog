@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ category | capitalize }} 글 작성</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <div class="banner-wrap">
+      <img src="{{ url_for('static', filename='banner.jpg') }}" alt="블로그 상단 이미지">
+
+      <nav class="navbar">
+        <ul>
+          {% if session.get('user') %}
+            <li><a href="{{ url_for('logout') }}" class="nav-btn">로그아웃</a></li>
+            <li><a href="{{ url_for('profile') }}" class="nav-btn">프로필</a></li>
+            <li><a href="{{ url_for('main') }}" class="nav-btn">홈</a></li>
+          {% else %}
+            <li><a href="{{ url_for('register') }}" class="nav-btn">회원가입</a></li>
+            <li><a href="{{ url_for('login') }}" class="nav-btn">로그인</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="post-list">
+      <h2>✍️ {{ category | capitalize }} 글 작성</h2>
+      <form method="POST" enctype="multipart/form-data" class="post-card">
+        <label for="title">제목:</label><br>
+        <input type="text" id="title" name="title" required style="width: 100%; padding: 8px;"><br><br>
+
+        <label for="content">내용:</label><br>
+        <textarea id="content" name="content" rows="10" style="width: 100%; padding: 8px;" required></textarea><br><br>
+
+        <label for="image">이미지 업로드:</label><br>
+        <input type="file" id="image" name="image"><br><br>
+
+        <p>카테고리: <strong>{{ category }}</strong></p>
+
+        <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px;">작성하기</button>
+      </form>
+      <p><a href="{{ url_for('category_posts', category=category) }}">← {{ category }} 글 목록으로 돌아가기</a></p>
+    </section>
+  </main>
+</body>
+</html>
