@@ -1,11 +1,55 @@
-<h1>전체 글 목록</h1>
+!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>재영의 기술 블로그</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <div class="banner-wrap">
+      <img src="{{ url_for('static', filename='banner.jpg') }}" alt="블로그 상단 이미지">
 
-{% for post in posts %}
-  <div>
-    <h2>{{ post.title }}</h2>
-    <p>작성자: {{ post.username }}</p>
-    <p>태그: {{ post.tags }}</p>
-    <p>작성일: {{ post.created_at }}</p>
-  </div>
-  <hr>
-{% endfor %}
+      <nav class="navbar">
+        <ul>
+          {% if session.get('user') %}
+            <li><a href="{{ url_for('write') }}" class="nav-btn">글쓰기</a></li>
+            <li><a href="{{ url_for('logout') }}" class="nav-btn">로그아웃</a></li>
+            <li><a href="{{ url_for('profile') }}" class="nav-btn">프로필</a></li>
+          {% else %}
+            <li><a href="{{ url_for('register') }}" class="nav-btn">회원가입</a></li>
+            <li><a href="{{ url_for('login') }}" class="nav-btn">로그인</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+
+      <div class="overlay-button">
+        <ul>
+          <li><a href="{{ url_for('category_posts', category='java') }}" class="btn"><i class="fab fa-java"></i> 자바</a></li>
+          <li><a href="{{ url_for('category_posts', category='css') }}" class="btn"><i class="fab fa-css3-alt"></i> CSS</a></li>
+          <li><a href="{{ url_for('category_posts', category='js') }}" class="btn"><i class="fab fa-js"></i> 자바스크립트</a></li>
+          <li><a href="{{ url_for('category_posts', category='spring') }}" class="btn"><i class="fas fa-leaf"></i> 자바스프링</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <main>
+  <section class="post-list">
+    <h2>📋 최신 글</h2>
+    <div class="post-grid">
+      {% for post in posts %}
+        <div class="post-card">
+          <h3><a href="{{ url_for('post_detail', post_id=post[0]) }}">{{ post[1] }}</a></h3>
+          <p class="meta">📁 {{ post[3] }} | ✍️ {{ post[2] }} | 🕒 {{ post[4] }}</p>
+          <div class="stats">
+            ❤️ 12 | 💬 3
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+</main>
+</body>
+</html>
