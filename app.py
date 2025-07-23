@@ -26,6 +26,7 @@ migrate = Migrate(app, db)
 
 # ✅ 데이터베이스 모델
 class User(db.Model):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
