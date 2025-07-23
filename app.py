@@ -59,7 +59,7 @@ def main():
     posts = db.session.execute(text("""
         SELECT p.id, p.title, u.username, p.tags, p.created_at
         FROM post p
-        JOIN user u ON p.author_id = u.id
+        JOIN "user" u ON p.author_id = u.id
         ORDER BY p.id DESC
     """)).fetchall()
     return render_template('main.html', posts=posts)
@@ -70,7 +70,7 @@ def category_posts(category):
     posts = db.session.execute(text("""
         SELECT p.id, p.title, u.username, p.tags, p.created_at
         FROM post p
-        JOIN user u ON p.author_id = u.id
+        JOIN "user" u ON p.author_id = u.id
         WHERE LOWER(p.tags) LIKE :category
         ORDER BY p.id DESC
     """), {'category': f'%{category.lower()}%'}).fetchall()
@@ -84,7 +84,7 @@ def post_detail(post_id):
     comments_raw = db.session.execute(text("""
         SELECT u.username, c.content, c.created_at
         FROM comment c
-        JOIN user u ON c.author_id = u.id
+        JOIN "user" u ON c.author_id = u.id
         WHERE c.post_id = :post_id
         ORDER BY c.id DESC
     """), {'post_id': post_id}).fetchall()
@@ -232,21 +232,4 @@ def delete_post(post_id):
         return redirect(url_for('main'))
 
     post = Post.query.get_or_404(post_id)
-    db.session.delete(post)
-    db.session.commit()
-    flash('글이 삭제되었습니다.')
-    return redirect(url_for('admin'))
-
-# ✅ DB 연결 테스트
-first_request_handled = False
-
-@app.before_request
-def init_once():
-    global first_request_handled
-    if not first_request_handled:
-        try:
-            db.session.execute(text('SELECT 1'))
-            print("✅ DB 연결 성공")
-        except Exception as e:
-            print("❌ DB 연결 실패:", e)
-        first_request_handled = True
+    db.session.delete
