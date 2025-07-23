@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -14,7 +14,7 @@
       <nav class="navbar">
         <ul>
           {% if session.get('user') %}
-            <li><a href="{{ url_for('write') }}" class="nav-btn">글쓰기</a></li>
+            <li><a href="{{ url_for('write_category', category='java') }}" class="nav-btn">글쓰기</a></li>
             <li><a href="{{ url_for('logout') }}" class="nav-btn">로그아웃</a></li>
             <li><a href="{{ url_for('profile') }}" class="nav-btn">프로필</a></li>
           {% else %}
@@ -36,20 +36,20 @@
   </header>
 
   <main>
-  <section class="post-list">
-    <h2>📋 최신 글</h2>
-    <div class="post-grid">
-      {% for post in posts %}
-        <div class="post-card">
-          <h3><a href="{{ url_for('post_detail', post_id=post[0]) }}">{{ post[1] }}</a></h3>
-          <p class="meta">📁 {{ post[3] }} | ✍️ {{ post[2] }} | 🕒 {{ post[4] }}</p>
-          <div class="stats">
-            ❤️ 12 | 💬 3
+    <section class="post-list">
+      <h2>📋 최신 글</h2>
+      <div class="post-grid">
+        {% for post in posts %}
+          <div class="post-card">
+            <h3><a href="{{ url_for('post_detail', post_id=post[0]) }}">{{ post[1] }}</a></h3>
+            <p class="meta">📁 {{ post[3] }} | ✍️ {{ post[2] }} | 🕒 {{ post[4] }}</p>
+            <div class="stats">
+              ❤️ 12 | 💬 3
+            </div>
           </div>
-        </div>
-      {% endfor %}
-    </div>
-  </section>
-</main>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
 </body>
 </html>
