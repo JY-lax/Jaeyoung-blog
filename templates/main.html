@@ -1,0 +1,11 @@
+<h1>전체 글 목록</h1>
+
+{% for post in posts %}
+  <div>
+    <h2>{{ post.title }}</h2>
+    <p>작성자: {{ post.username }}</p>
+    <p>태그: {{ post.tags }}</p>
+    <p>작성일: {{ post.created_at }}</p>
+  </div>
+  <hr>
+{% endfor %}
