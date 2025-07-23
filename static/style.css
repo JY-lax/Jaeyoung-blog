@@ -1,0 +1,166 @@
+/* 🔷 전체 기본 설정 */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+/* 🔷 배너 영역 */
+.banner-wrap {
+  position: relative;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+
+.banner-wrap img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+/* 🔷 상단 네비게이션 바 */
+.navbar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  padding: 2rem;
+  text-align: right;
+  background-color: transparent;
+  z-index: 20;
+}
+
+.navbar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  gap: 2rem;
+}
+
+.navbar a {
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.navbar a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffc107;
+}
+
+
+/* 🔷 기술 버튼 오버레이 영역 */
+.overlay-button {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  background-color: transparent;
+  padding: 0;
+}
+
+/* 🔷 버튼 리스트 가로 정렬 */
+.overlay-button ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 2rem;
+}
+.overlay-button ul li {
+  display: inline-block;
+}
+
+/* 🔷 버튼 스타일: 아이콘 + 텍스트만 표시 */
+.overlay-button a.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px; /* ✅ 아이콘과 텍스트 간격 넉넉하게 */
+  background-color: transparent;
+  color: white;
+  font-size: 1.1rem; /* ✅ 텍스트 크기 키우기 */
+  font-weight: bold;
+  text-decoration: none;
+  padding: 10px 16px; /* ✅ 버튼 크기 키우기 */
+  border-radius: 6px;
+  white-space: nowrap; /* ✅ 줄바꿈 방지 */
+  transition: color 0.3s, background-color 0.3s;
+}
+
+/* 🔷 호버 시 색상 변화 */
+.overlay-button a.btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffc107;
+}
+
+/* 🔷 아이콘 크기 */
+.overlay-button i {
+  font-size: 1.3rem;
+}
+
+/* 🔷 글 목록 섹션 */
+.post-list {
+  padding: 2rem;
+  background-color: #f9f9f9;
+}
+
+.post-list h2 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+/* 🔷 카드형 레이아웃 */
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.post-card {
+  position: relative;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transition: box-shadow 0.3s;
+}
+
+.post-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+
+.post-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.post-card h3 a {
+  text-decoration: none;
+  color: #007bff;
+}
+
+.post-card h3 a:hover {
+  text-decoration: underline;
+}
+
+.post-card .meta {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.post-card .stats {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #888;
+}

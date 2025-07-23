@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ post.title }}</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    .comment { margin-bottom: 10px; }
+    .meta { font-size: 0.9em; color: gray; }
+  </style>
+</head>
+<body>
+  <h2>{{ post.title }}</h2>
+  <p><strong>작성자:</strong> {{ post.author }}</p>
+  <p><strong>작성일:</strong> {{ post.created_at }}</p>
+  <hr>
+  <p>{{ post.content }}</p>
+
+  <p>❤️ 좋아요: {{ likes }}개</p>
+  {% if session.get('user') %}
+    <a href="{{ url_for('like', post_id=post_id) }}">좋아요 누르기</a>
+  {% else %}
+    <p><a href="{{ url_for('login') }}">로그인</a> 후 좋아요를 누를 수 있어요.</p>
+  {% endif %}
+
+  <hr>
+  <a href="{{ url_for('home') }}">← 목록으로 돌아가기</a>
+
+  <h3>💬 댓글</h3>
+
+  {% if session.get('user') %}
+    <form method="POST" action="{{ url_for('comment', post_id=post_id) }}">
+      <textarea name="content" rows="3" cols="50" required></textarea><br>
+      <button type="submit">댓글 작성</button>
+    </form>
+  {% else %}
+    <p>댓글을 작성하려면 <a href="{{ url_for('login') }}">로그인</a>하세요.</p>
+  {% endif %}
+
+  <ul>
+    {% for comment in comments %}
+      <li class="comment">
+        <strong>{{ comment[0] }}</strong><br>
+        {{ comment[1] }}<br>
+        <span class="meta">{{ comment[2] }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+</body>
+</html>

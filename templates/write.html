@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>글 작성하기</title>
+</head>
+<body>
+  <h2>✍️ 글 작성하기</h2>
+  <form method="POST">
+    <label>제목: <input type="text" name="title" required></label><br><br>
+    <label>내용:<br>
+      <textarea name="content" rows="10" cols="50" required></textarea>
+    </label><br><br>
+
+    {% if category %}
+      <p>카테고리: <strong>{{ category }}</strong></p>
+    {% else %}
+      <label>카테고리:
+        <select name="category">
+          <option value="java">Java</option>
+          <option value="css">CSS</option>
+          <option value="js">JavaScript</option>
+          <option value="spring">Spring</option>
+          <option value="default">기타</option>
+        </select>
+      </label>
+    {% endif %}
+
+    <br><br>
+    <button type="submit">작성하기</button>
+  </form>
+</body>
+</html>

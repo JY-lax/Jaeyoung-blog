@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.env
+.env
+
+# Flask uploads
+instance/
+static/uploads/
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
+
+# Database
+*.sqlite3
+*.db
+
+# Logs
+*.log
+
+# Migrations
+migrations/
