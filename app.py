@@ -281,6 +281,24 @@ def profile():
         return redirect(url_for('login'))
 
     return render_template('profile.html', username=user.username, user=user)
+@app.route('/comment/<int:post_id>', methods=['POST'])
+def comment(post_id):
+    if not session.get('user'):
+        flash('로그인이 필요합니다.')
+        return redirect(url_for('login'))
+
+    content = request.form.get('content')
+    user = User.query.filter_by(username=session['user']).first()
+
+    if not user:
+        flash('사용자를 찾을 수 없습니다.')
+        return redirect(url_for('login'))
+
+    new_comment = Comment(content=content, post_id=post_id, author_id=user.id)
+    db.session.add(new_comment)
+    db.session.commit()
+    flash('댓글이 작성되었습니다.')
+    return redirect(url_for('post_detail', post_id=post_id))
 
 # ✅ 관리자 페이지
 @app.route('/admin')
